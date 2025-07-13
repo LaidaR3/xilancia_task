@@ -24,11 +24,36 @@ $segments = explode('/', trim($request_uri, '/'));
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_uri === '/users') {
     $input = json_decode(file_get_contents('php://input'), true);
 
-    if (!isset($input['first_name'], $input['last_name'], $input['email'])) {
+    $first = trim($input['first_name'] ?? '');
+    $last  = trim($input['last_name'] ?? '');
+    $email = trim($input['email'] ?? '');
+    
+    $errors = [];
+    
+    if ($first === '') {
+        $errors[] = 'First name is required';
+    } elseif (!ctype_upper(substr($first, 0, 1))) {
+        $errors[] = 'First name must start with a capital letter';
+    }
+    
+    if ($last === '') {
+        $errors[] = 'Last name is required';
+    } elseif (!ctype_upper(substr($last, 0, 1))) {
+        $errors[] = 'Last name must start with a capital letter';
+    }
+    
+    if ($email === '') {
+        $errors[] = 'Email is required';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Invalid email format';
+    }
+    
+    if (!empty($errors)) {
         http_response_code(400);
-        echo json_encode(['error' => 'Missing required fields']);
+        echo json_encode(['errors' => $errors]);
         exit;
     }
+
 
     try {
         $stmt = $pdo->prepare("CALL create_user(:first_name, :last_name, :email)");
