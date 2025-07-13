@@ -54,10 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_uri === '/users') {
         $errors[] = 'Last name must start with a capital letter';
     }
     
-    if ($email === '') {
-        $errors[] = 'Email is required';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Invalid email format';
+    //This checks if email already exists
+    $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
+    $checkStmt->bindParam(':email', $email);
+    $checkStmt->execute();
+    $emailExists = $checkStmt->fetchColumn();
+    
+    if ($emailExists > 0) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Email already exists']);
+        exit;
     }
     
     if (!empty($errors)) {
