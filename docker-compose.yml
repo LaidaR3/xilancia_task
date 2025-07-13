@@ -14,7 +14,8 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: company_db
+      MYSQL_DATABASE: xalencia_task_db
+
     ports:
       - "3306:3306"
     volumes:
