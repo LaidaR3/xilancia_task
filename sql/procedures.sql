@@ -19,10 +19,12 @@ BEGIN
   SELECT * FROM users WHERE users.id = id;
 END //
 
+-- pagination
 DROP PROCEDURE IF EXISTS get_all_users;
-CREATE PROCEDURE get_all_users()
+CREATE PROCEDURE get_all_users(IN p_limit INT, IN p_offset INT)
 BEGIN
-  SELECT * FROM users;
+  SELECT * FROM users
+  LIMIT p_limit OFFSET p_offset;
 END //
 
 DROP PROCEDURE IF EXISTS update_user;

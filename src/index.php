@@ -4,7 +4,19 @@ $db   = 'xalencia_task_db';
 $user = 'root';
 $pass = 'root';
 
+define('API_KEY', '9dj28Jsd!92@Xal#Key');
+
+
+
 header('Content-Type: application/json');
+
+$headers = getallheaders();
+if (!isset($headers['Authorization']) || $headers['Authorization'] !== 'Bearer ' . API_KEY) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized']);
+    exit;
+}
+
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
@@ -71,10 +83,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $request_uri === '/users') {
 }
 
 
-// GET/ USERS
+// GET/ USERS / pagination
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $request_uri === '/users') {
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+    $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+
     try {
-        $stmt = $pdo->query("CALL get_all_users()");
+        $stmt = $pdo->prepare("CALL get_all_users(:limit, :offset)");
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode($users);
     } catch (PDOException $e) {
@@ -82,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $request_uri === '/users') {
         echo json_encode(['error' => $e->getMessage()]);
     }
 }
+
 
 //GET/ USERS by id
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && preg_match('#^/users/\d+$#', $request_uri)) {
